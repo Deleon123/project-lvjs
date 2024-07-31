@@ -20,5 +20,9 @@ class Course extends Model
         'hours',
         'description',
     ];
+    public function users()
+    {
+        $this->hasMany(CourseHasUser::class);
+    }
 
 }
