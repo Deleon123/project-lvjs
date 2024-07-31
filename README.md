@@ -27,3 +27,5 @@ down
 Up - Liga o servidor docker
 
 Down - Desliga o servidor docker
+
+OBS: o sistema possui RBAC, onde a role 'admin' tem permissões adicionais, quanto outras roles (user) não, para testar a visão admin é necessário configurar o user que deseja pelo banco de dados
