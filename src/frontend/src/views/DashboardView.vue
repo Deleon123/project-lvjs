@@ -1,105 +1,120 @@
 <template>
   <div class="min-h-screen flex items-center justify-center bg-gray-100">
-    <div class="bg-white p-8 rounded shadow-md w-full max-w-md">
-      <h2 class="text-2xl font-bold mb-6 text-center">Sign Up</h2>
-      <form @submit.prevent="handleSubmit">
-        <div class="mb-4">
-          <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
-          <input 
-            type="text" 
-            id="name" 
-            v-model="user.name" 
-            required 
-            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          />
-        </div>
-        <div class="mb-4">
-          <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-          <input 
-            type="email" 
-            id="email" 
-            v-model="user.email" 
-            required 
-            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          />
-        </div>
-        <div class="mb-4">
-          <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-          <input 
-            type="password" 
-            id="password" 
-            v-model="user.password" 
-            required 
-            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          />
-        </div>
-        <div class="mb-6">
-          <label for="photo" class="block text-sm font-medium text-gray-700">Photo</label>
-          <input 
-            type="file" 
-            id="photo" 
-            @change="handleFileChange" 
-            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          />
-        </div>
-        <button 
-          type="submit" 
-          class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-        >
-          Sign Up
-        </button>
-        <p class="mt-4 text-center">
-          <router-link 
-            to="/login" 
-            class="text-indigo-600 hover:text-indigo-700"
+    <div class="bg-white p-8 rounded shadow-md w-full max-w-3xl">
+      <div>
+        <h1 class="text-2xl font-bold mb-6 text-center">Courses</h1>
+        <div class="space-y-4">
+          <div
+            v-for="(course, index) in courses"
+            :key="index"
+            class="bg-gray-100 p-6 rounded-lg shadow-md"
           >
-            Already have an account? Log in
+            <h2 class="text-lg font-semibold mb-2">{{ course.course_name }}</h2>
+            <p class="text-gray-700 mb-2">{{ course.course_description }}</p>
+            <p class="text-gray-500 mb-2">{{ course.course_hours }} hours - {{ course.course_classes }} classes</p>
+            <p class="text-gray-500 mb-2">Watched Classes: {{ course.watched_classes }}</p>
+            <div class="w-full bg-gray-200 rounded-full h-4 mb-4">
+              <div class="bg-green-500 h-4 rounded-full" :style="{ width: `${(course.watched_classes / course.course_classes) * 100}%` }"></div>
+            </div>
+            <div class="flex justify-between space-x-2 mt-4">
+              <button
+                @click="confirmLeaveCourse(course.id)"
+                class="bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+              >
+                Leave Course
+              </button>
+              <button
+                @click="showAddWatchedClasses(course.course_id)"
+                class="bg-green-500 text-white font-bold py-2 px-4 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
+              >
+                Add Watched Classes
+              </button>
+              <router-link
+                v-if="isAdmin"
+                :to="{ name: 'updateCourse', params: { id: course.course_id }}"
+                class="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+              >
+                Edit
+              </router-link>
+            </div>
+          </div>
+        </div>
+        <div class="mt-6 flex justify-end">
+          <router-link
+            v-if="isAdmin"
+            to="/courses/create"
+            class="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+          >
+            Add New Course
           </router-link>
-        </p>
-      </form>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
-import axios from 'axios'
-import { useRouter } from 'vue-router'
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
 
-const router = useRouter()
+const courses = ref([]);
+const user = JSON.parse(localStorage.getItem('user'));
+const isAdmin = (user && user.role === 'admin');
 
-const user = reactive({
-  name: '',
-  email: '',
-  password: '',
-  photo: null
-})
+const fetchCourses = async () => {
+  try {
+    const response = await axios.get('http://localhost/api/user/courses', {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('authToken')}`
+      }
+    });
+    courses.value = response.data;
+  } catch (error) {
+    console.error('Error fetching courses:', error.response?.data?.message || error.message);
+  }
+};
 
-const handleFileChange = (event) => {
-  user.photo = event.target.files[0]
-}
+const confirmLeaveCourse = (courseId) => {
+  if (confirm('Are you sure you want to leave this course?')) {
+    leaveCourse(courseId);
+  }
+};
 
-const handleSubmit = () => {
-  const formData = new FormData()
-  formData.append('name', user.name)
-  formData.append('email', user.email)
-  formData.append('password', user.password)
-  formData.append('photo', user.photo)
+const leaveCourse = async (courseId) => {
+  try {
+    await axios.delete(`http://localhost/api/user/courses/${courseId}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('authToken')}`
+      }
+    });
+    fetchCourses(); // Refresh the course list
+  } catch (error) {
+    console.error('Error leaving course:', error.response?.data?.message || error.message);
+  }
+};
 
-  axios.post('http://localhost/api/auth/signup', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
-  })
-    .then((response) => {
-      console.log('Signup successful:', response.data)
-      const token = response.data.token
-      localStorage.setItem('authToken', token)
-      router.push({ name: 'dashboard' })
-    })
-    .catch((error) => {
-      console.error('Signup failed:', error.response?.data?.message || error.message)
-      alert(error.response?.data?.message || 'Signup failed')
-    })
-}
+const showAddWatchedClasses = (courseId) => {
+  const watchedClasses = prompt('Enter the number of watched classes:');
+  if (watchedClasses && !isNaN(watchedClasses) && watchedClasses > 0) {
+    addWatchedClasses(courseId, parseInt(watchedClasses, 10));
+  }
+};
+
+const addWatchedClasses = async (courseId, watchedClasses) => {
+  try {
+    await axios.post(`http://localhost/api/user/courses/${courseId}/watched`, { watched_classes: watchedClasses }, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('authToken')}`
+      }
+    });
+    fetchCourses(); // Refresh the course list
+  } catch (error) {
+    console.error('Error adding watched classes:', error.response?.data?.message || error.message);
+  }
+};
+
+
+onMounted(() => {
+  fetchCourses();
+});
 </script>

@@ -18,7 +18,7 @@ class CourseHasUser extends Model
         'course_id',
         'watched_classes',
     ];
-
+    protected $table = 'course_has_user';
     public function course()
     {
         return $this->belongsTo(Course::class);
@@ -27,5 +27,14 @@ class CourseHasUser extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+    /**
+     * Get all.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public static function getAllCourseHasUsers()
+    {
+        return self::all();
     }
 }

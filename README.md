@@ -1,8 +1,9 @@
 ## Projeto usando Vue e Laravel com Docker e MySQL
 
 ## Get Started
+Configurar as envs (src/backend/.env) de acordo com o .env.example
 
-Para rodar o projeto digite
+Configurado a env, para rodar o projeto digite
 
 ```sh
 source aliases.sh

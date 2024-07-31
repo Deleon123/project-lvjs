@@ -20,7 +20,6 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
-        'photo',
         'role',
         'password',
     ];
@@ -32,8 +31,6 @@ class User extends Authenticatable
      */
     protected $hidden = [
         'password',
-        'role',
-        'photo',
     ];
 
     /**
@@ -50,4 +47,13 @@ class User extends Authenticatable
         $this->hasMany(CourseHasUser::class);
     }
 
+    /**
+     * Get all users.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public static function getAllUsers()
+    {
+        return self::all();
+    }
 }

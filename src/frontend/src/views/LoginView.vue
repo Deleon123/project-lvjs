@@ -70,8 +70,11 @@ const handleSubmit = () => {
     })
           .then((response) => {
             console.log('Login successful:', response.data);
-            const token = response.data.token;
+
+            const { token, user } = response.data;
             localStorage.setItem('authToken', token);
+            localStorage.setItem('user', JSON.stringify(user));
+            localStorage.setItem('UserRole', user.role);
             router.push({
                 name: 'dashboard'
             });
